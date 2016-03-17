@@ -9,8 +9,8 @@ libxml_use_internal_errors(true);
 $wechatObj = new wechatCallbackapiTest();
 header("content-Type: text/html; charset=gbk");
 $servername = "localhost";
-$username = "";
-$password = "";
+$username = " ";
+$password = " ";
 $dbname = "weixinLibrary";
 
 $conn = mysql_connect($servername, $username, $password);//创建sql连接
@@ -83,6 +83,7 @@ class wechatCallbackapiTest
             $fromUsername = $postObj->FromUserName;
             $toUsername = $postObj->ToUserName;
             $keyword = trim($postObj->Content);
+            $event = $postObj->Event;
             $time = time();
             $textTpl = "<xml>
                         <ToUserName><![CDATA[%s]]></ToUserName>
@@ -112,7 +113,13 @@ class wechatCallbackapiTest
             </xml>
             ";           
             $findbook = 'SELECT * FROM books WHERE bookName="%s"';
-            $createbook ='INSERT INTO books (isbn, bookName, detail) VALUES ("%s", "%s","%s")';            
+            $createbook ='INSERT INTO books (isbn, bookName, detail) VALUES ("%s", "%s","%s")'; 
+            if($event == "subscribe") {
+                $msgType = "text";#回复数据类型为文本
+                $contentStr = "使用方法：book+书籍全名\n如：'book+三国演义'";//回复字串内容为年月日
+                $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
+                echo $resultStr;//构成标准xml文件                
+            }
             if($keyword == "?" || $keyword == "？")//当url带问号的时候执行花括号内的内容
             {
                 $msgType = "text";#回复数据类型为文本
