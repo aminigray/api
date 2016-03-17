@@ -3,7 +3,7 @@
     方倍工作室 http://www.cnblogs.com/txw1958/
     CopyRight 2013 www.doucube.com  All Rights Reserved
 */
-
+libxml_use_internal_errors(true);
 define("TOKEN", "weixin");
 $wechatObj = new wechatCallbackapiTest();
 header("content-Type: text/html; charset=gbk");
