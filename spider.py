@@ -8,19 +8,16 @@ def spider(num):
     response = urllib.urlopen(url)
     page = response.read()
     return page
-    
+
 def analyse(page):
     doc = etree.HTML(page.decode('utf-8','ignore'))
-    book_name = doc.xpath(u"//div[@class='EXLLinkedFieldTitle']")
-    book_publish = doc.xpath(u"//li[@id='出版发行-1']/span[@class='EXLDetailsDisplayVal']")
-    book_isbn = doc.xpath(u"//li[@id='识别符-1']/span[@class='EXLDetailsDisplayVal']")
-    book_author = doc.xpath(u"//li[@id='著者-1']/a[@class='EXLLinkedField']")
-    book_ztflh = doc.xpath(u"//li[@id='著者-1']/a[@class='EXLLinkedField']")
-    print doc
-    print book_ztflh
+    book_name = doc.xpath(u"//div[@class='EXLLinkedFieldTitle']/text()")
+    book_publish = doc.xpath(u"//ul/li[@id='出版发行-1']/span[@class='EXLDetailsDisplayVal']/text()")
+    book_author = doc.xpath(u"//ul/li[@id='著者-1']/a[@class='EXLLinkedField']/text()")
+    return book_name[0]
 
 def main():
-    analyse(spider(100000))
-    
-    
-main()    
+    print analyse(spider(100000)).encode('utf-8')
+
+
+main()
