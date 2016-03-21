@@ -151,6 +151,39 @@ class wechatCallbackapiTest
             ";           
             $findbook = 'SELECT * FROM books WHERE book_name="%s"';
             $createbook ='INSERT INTO books (book_isbn, book_author, book_publisher, book_location, book_states, book_ztflh, book_name) VALUES ("%s", "%s","%s","%s","%s","%s","%s")'; 
+            $findUser = 'SELECT * from search_history WHERE user="%s";';
+            $createuser = 'INSERT INTO search_history (user, counter) VALUES ("%s", 1);';
+            $updateCounter = 'UPDATE search_history SET counter = counter+1 WHERE user="%s";';
+            $reseteCounter = 'UPDATE search_history SET counter = 0 WHERE user="%s";';
+            $findUser = sprintf($findUser, $fromUsername);
+            function checktime(){
+                    if (intval(date('i'))===0&&intval(date('s'))===0){
+                            return 1;
+                    }
+                    else {
+                        return 0;
+                    }
+            }            
+            if ($row = mysql_fetch_array(mysql_query($findUser))) {
+                if ($row['counter']<=5) {
+                    $updateCounter = sprintf($updateCounter, $fromUsername);
+                    $updateCounter = mysql_query($updateCounter);
+                }
+                elseif (checktime() == 1) {
+                    $reseteCounter = 'UPDATE search_history SET counter = 0 WHERE user="%s";';
+                    $reseteCounter = mysql_query($updateCounter);
+                }
+                else {
+                $msgType = "text";#回复数据类型为文本
+                $contentStr = "超出使用次数，30分钟后恢复";//回复字串内容为年月日
+                $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
+                echo $resultStr;//构成标准xml文件                      
+                }
+            }
+            else {
+                $createuser = sprintf($createuser, $fromUsername);
+                $createuser = mysql_query($createuser);
+            }
             if($event == "subscribe") {
                 $msgType = "text";#回复数据类型为文本
                 $contentStr = "使用方法：book+书籍全名\n如：'book+三国演义'";//回复字串内容为年月日
