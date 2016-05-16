@@ -47,7 +47,7 @@
         $doc->loadHTML($html);
         $xpath = new DOMXpath($doc);
         $href = $xpath->query($mypath);
-        return $href;
+        return nodelist2string($href);   
     }
     function test_input($data) {
         $data = trim($data);
@@ -72,21 +72,36 @@
         $json_arr = array();
         if(preg_match_all($zhengze, $source , $matches)) {
             foreach($matches as $match) {
-                array_push($json_arr, array('title'=>str_replace($arr, '', $match)));
+                $json_arr = $json_arr + array("title"=>str_replace($arr, '', $match));
             }
             echo json_encode($json_arr);
         }
     }
     elseif ($search != "") {
-        $url = "http://aleph.dlmu.edu.cn:8991/F/6RCM1U1Y9KA5GU3J9LGH4VKL71YTP28TQMMLLM9K82XH9GLLV1-02032?func=find-b&find_code=WRD&request=". $search ."&filter_code_1=WLN&filter_request_1=&filter_code_2=WYR&filter_request_2=&filter_code_3=WYR&filter_request_3=&filter_code_4=WFM&filter_request_4=&filter_code_5=WSL&filter_request_5=";
-        $source = curl_get_contents($url);
-        $book_name = dom_parser($source, "//div[@class='itemtitle']");
-        $book_code = dom_parser($source, "//td[@class='col2']/table/tbody/tr[1]/td[@class='content'][2]");
-        $book_state = dom_parser($source, "//td[@class='col2']/table/tbody/tr[4]/td[@class='libs']/a");
-        $book_publish = dom_parser($source, "//td[@class='col2']/table/tbody/tr[2]/td[@class='content'][1]");
-        $book_author = dom_parser($source, "//td[@class='col2']/table/tbody/tr[1]/td[@class='content'][1]");
-        $book_state_href = dom_parser($source , "//td[@class='col2']/table/tbody/tr[4]/td[@class='libs']/a/@href");
-        echo $source;
+        $url = "http://202.118.84.130:1701/primo_library/libweb/action/search.do?ct=facet&fctN=facet_tlevel&fctV=available&rfnGrp=show_only&dscnt=0&frbg=&scp.scps=scope%3A(DLMH)%2Cprimo_central_multiple_fe&tab=default_tab&dstmp=1456801597218&srt=rank&ct=search&mode=Basic&&dum=true&indx=1&vl(freeText0)=".$search;
+        $url = $url."&fn=search&vid=dlmh";//海事大学图书馆书名查找入口
+        $html_source = curl_get_contents($url);
+    //    echo dom_parser($html_source, "//li[@id='exlidResult0-LocationsTab']/a/@href");//获取图书所在位置
+        $url = "http://202.118.84.130:1701/primo_library/libweb/action/" . dom_parser($html_source, "//li[@id='exlidResult0-LocationsTab']/a/@href");//查找图书所在位置(在架状态页面)
+        $url_2 = "http://202.118.84.130:1701/primo_library/libweb/action/" . dom_parser($html_source, "//a[@id='exlidResult0-detailsTabLink']/@href");//查找图书所在位置(详细信息页面)
+        $html_source_2 = curl_get_contents($url_2);
+        $book_isbn = dom_parser($html_source_2, "//ul/li[@id='识别符-1']/span[@class='EXLDetailsDisplayVal']");
+        $html_source = curl_get_contents($url);
+        $book_name = dom_parser($html_source, "//h1[@class='EXLResultTitle']");//获取书籍名称
+        $book_author = dom_parser($html_source_2,"//ul/li[@id='著者-1']/a[@class='EXLLinkedField']");//获取书籍作者
+        $book_publisher = dom_parser($html_source_2,"//ul/li[@id='出版发行-1']/span[@class='EXLDetailsDisplayVal']");//获取书籍出版社
+        $book_location = trim(dom_parser($html_source, "//span[@class='EXLLocationsTitleContainer']"));//获取书籍所在位置
+        $book_details = dom_parser($html_source, "//h3[@class='EXLResultFourthLine']");//获取书籍细节     
+        $book_states = dom_parser($html_source, "//td[@class='EXLLocationTableColumn3']");//获取在架状态
+        $book_ztflh = dom_parser($html_source, "//cite");//获取书籍中图分类号
+        $pa = '{[a-zA-Z]{1,2}.*[0-9]}';
+        if (preg_match($pa, $book_ztflh, $a_book_ztflh)) {
+            $book_ztflh = $a_book_ztflh[0];
+        }
+        if (ctype_space($contentStr)){
+            echo"没有你想要找的书籍";
+        }
+        echo json_encode(array("book_isbn"=>$book_isbn, "book_name"=>$book_name, "book_author"=>$book_author, "book_publisher"=>$book_publisher, "book_location"=>$book_location, "book_states "=>$book_states, "book_details"=>$book_details, "book_ztflh"=>$book_ztflh));
     }
     elseif($newbook == "yes") {
         $url = "http://aleph.dlmu.edu.cn:8991/cgi-bin/newbook.cgi?base=ALL&cls=ALL&date=180";
@@ -96,7 +111,7 @@
         $json_arr = array();
         if(preg_match_all($zhengze, $source , $matches)) {
             foreach($matches as $match) {
-                array_push($json_arr, array('title'=>str_replace($arr, '', $match)));
+                $json_arr = $json_arr + array("title"=>str_replace($arr, '', $match));
             }
             echo json_encode($json_arr);
         }        
