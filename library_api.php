@@ -72,7 +72,7 @@
         $json_arr = array();
         if(preg_match_all($zhengze, $source , $matches)) {
             foreach($matches as $match) {
-                array_push($json_arr, str_replace($arr, '', $match));
+                array_push($json_arr, array('title'=>str_replace($arr, '', $match)));
             }
             echo json_encode($json_arr);
         }
@@ -91,11 +91,12 @@
     elseif($newbook == "yes") {
         $url = "http://aleph.dlmu.edu.cn:8991/cgi-bin/newbook.cgi?base=ALL&cls=ALL&date=180";
         $source = curl_get_contents($url);
-        $zhengze = "/t\:\".*?\"/";
+        $zhengze = '/t:".*?"/';
         $arr = array('t:','"');
+        $json_arr = array();
         if(preg_match_all($zhengze, $source , $matches)) {
             foreach($matches as $match) {
-                array_push($json_arr, str_replace($arr, '', $match));
+                array_push($json_arr, array('title'=>str_replace($arr, '', $match)));
             }
             echo json_encode($json_arr);
         }        
