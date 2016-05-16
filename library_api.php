@@ -1,4 +1,5 @@
 <?php
+    header("content-Type: text/html; charset=utf-8");
     function curl_get_contents($url,$timeout=5,$method='get',$post_fields=array(),$reRequest=0,$referer="") { //封装 curl
        $ch = curl_init();
        curl_setopt($ch, CURLOPT_URL, $url);
@@ -57,15 +58,24 @@
     $search = "";
     $toplist ="";
     $num = "";
+    $newbook = "";
     if ($_SERVER["REQUEST_METHOD"] == "GET") {
         $search = test_input($_GET["search"]);
-        $toplisth = test_input($_GET["toplist"]);
+        $toplist = test_input($_GET["toplist"]);
         $num = test_input($_GET["num"]);
+        $newbook = test_input($_GET["newbook"]);
     }
-    if (top_list == "yes") {
-        $source = curl_get_contents('http://aleph.dlmu.edu.cn:8991/F/L9L2XMNK5B44CMJNMD29LXA4QSL6SDR8JIBH7KST4HXFHQE3JF-01833?func=file&file_name=hotinfo');
-        $book_list = dom_parser($source,"/html/body/center/div[@id='news']/table/tbody/tr[1]/td[@id='newbook']");
-        var_dump($book_list);
+    if ($toplist == "yes") {
+        $source = curl_get_contents("http://aleph.dlmu.edu.cn:8991/opac_lcl_chi/loan_top_ten/loan.ALL.ALL.y");
+        $zhengze = '/\">.*?</';
+        $arr = array('">','<');
+        $json_arr = array();
+        if(preg_match_all($zhengze, $source , $matches)) {
+            foreach($matches as $match) {
+                array_push($json_arr, str_replace($arr, '', $match));
+            }
+            echo json_encode($json_arr);
+        }
     }
     elseif ($search != "") {
         $url = "http://aleph.dlmu.edu.cn:8991/F/6RCM1U1Y9KA5GU3J9LGH4VKL71YTP28TQMMLLM9K82XH9GLLV1-02032?func=find-b&find_code=WRD&request=". $search ."&filter_code_1=WLN&filter_request_1=&filter_code_2=WYR&filter_request_2=&filter_code_3=WYR&filter_request_3=&filter_code_4=WFM&filter_request_4=&filter_code_5=WSL&filter_request_5=";
@@ -76,8 +86,20 @@
         $book_publish = dom_parser($source, "//td[@class='col2']/table/tbody/tr[2]/td[@class='content'][1]");
         $book_author = dom_parser($source, "//td[@class='col2']/table/tbody/tr[1]/td[@class='content'][1]");
         $book_state_href = dom_parser($source , "//td[@class='col2']/table/tbody/tr[4]/td[@class='libs']/a/@href");
+        echo $source;
     }
-  
+    elseif($newbook == "yes") {
+        $url = "http://aleph.dlmu.edu.cn:8991/cgi-bin/newbook.cgi?base=ALL&cls=ALL&date=180";
+        $source = curl_get_contents($url);
+        $zhengze = "/t\:\".*?\"/";
+        $arr = array('t:','"');
+        if(preg_match_all($zhengze, $source , $matches)) {
+            foreach($matches as $match) {
+                array_push($json_arr, str_replace($arr, '', $match));
+            }
+            echo json_encode($json_arr);
+        }        
+    }
     
 
 ?>
