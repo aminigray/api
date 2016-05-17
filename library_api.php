@@ -59,11 +59,13 @@
     $toplist ="";
     $num = "";
     $newbook = "";
+    $douban = "";
     if ($_SERVER["REQUEST_METHOD"] == "GET") {
         $search = test_input($_GET["search"]);
         $toplist = test_input($_GET["toplist"]);
         $num = test_input($_GET["num"]);
         $newbook = test_input($_GET["newbook"]);
+        $douban = test_input($_GET["douban"]);
     }
     if ($toplist == "yes") {
         $source = curl_get_contents("http://aleph.dlmu.edu.cn:8991/opac_lcl_chi/loan_top_ten/loan.ALL.ALL.y");
@@ -115,6 +117,18 @@
             }
             echo json_encode($json_arr);
         }        
+    }
+    elseif($douban != "") {
+        if(preg_match('/[0-9]{13}/',$douban) or preg_match('/[0-9]{10}/',$douban)) {
+            $url = 'https://api.douban.com/v2/book/isbn/' . $douban . '?fields=rating,image';
+            $source = curl_get_contents($url);
+            $json = json_decode($source);
+            $book_rating = $json->rating->average;
+            $book_image = $json->image;
+            echo json_encode(array("book_rating"=>$book_rating, "book_image"=>$book_image));
+        }
+        else
+            echo "错误的isbn";
     }
     
 
