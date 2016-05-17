@@ -60,26 +60,50 @@
     $num = "";
     $newbook = "";
     $douban = "";
+    $json_arr = array();
     if ($_SERVER["REQUEST_METHOD"] == "GET") {
         $search = test_input($_GET["search"]);
         $toplist = test_input($_GET["toplist"]);
         $num = test_input($_GET["num"]);
         $newbook = test_input($_GET["newbook"]);
         $douban = test_input($_GET["douban"]);
+        ec
     }
-    if ($toplist == "yes") {
+    if ($toplist != "") {
         $source = curl_get_contents("http://aleph.dlmu.edu.cn:8991/opac_lcl_chi/loan_top_ten/loan.ALL.ALL.y");
-        $zhengze = '/\">.*?</';
+        $zhengze = '/">.*?</';
         $arr = array('">','<');
-        $json_arr = array();
         if(preg_match_all($zhengze, $source , $matches)) {
             foreach($matches as $match) {
                 $json_arr = $json_arr + array("title"=>str_replace($arr, '', $match));
             }
-            echo json_encode($json_arr);
         }
     }
-    elseif ($search != "") {
+    if($newbook != "") {
+        $url = "http://aleph.dlmu.edu.cn:8991/cgi-bin/newbook.cgi?base=ALL&cls=ALL&date=180";
+        $source = curl_get_contents($url);
+        $zhengze = '/t:".*?"/';
+        $arr = array('t:','"');
+        if(preg_match_all($zhengze, $source , $matches)) {
+            foreach($matches as $match) {
+                $json_arr = $json_arr + array("title"=>str_replace($arr, '', $match));
+            }
+        }        
+    }
+    if($douban != "") {
+        if(preg_match('/[0-9]{13}/',$douban) or preg_match('/[0-9]{10}/',$douban)) {
+            $url = 'https://api.douban.com/v2/book/isbn/' . $douban . '?fields=rating,image,price';
+            $source = curl_get_contents($url);
+            $json = json_decode($source);
+            $book_rating = $json->rating->average;
+            $book_image = $json->image;
+            $book_price = $json->price;
+            $json_arr = $json_arr + array("book_rating"=>$book_rating, "book_image"=>$book_image, "book_price"=>$book_price);
+        }
+        else
+            echo "错误的isbn";
+    }    
+    if ($search != "") {
         $url = "http://202.118.84.130:1701/primo_library/libweb/action/search.do?ct=facet&fctN=facet_tlevel&fctV=available&rfnGrp=show_only&dscnt=0&frbg=&scp.scps=scope%3A(DLMH)%2Cprimo_central_multiple_fe&tab=default_tab&dstmp=1456801597218&srt=rank&ct=search&mode=Basic&&dum=true&indx=1&vl(freeText0)=".$search;
         $url = $url."&fn=search&vid=dlmh";//海事大学图书馆书名查找入口
         $html_source = curl_get_contents($url);
@@ -103,34 +127,7 @@
         if (ctype_space($contentStr)){
             echo"没有你想要找的书籍";
         }
-        echo json_encode(array("book_isbn"=>$book_isbn, "book_name"=>$book_name, "book_author"=>$book_author, "book_publisher"=>$book_publisher, "book_location"=>$book_location, "book_states "=>$book_states, "book_details"=>$book_details, "book_ztflh"=>$book_ztflh));
+        $json_arr = $json_arr + array("book_isbn"=>$book_isbn, "book_name"=>$book_name, "book_author"=>$book_author, "book_publisher"=>$book_publisher, "book_location"=>$book_location, "book_states "=>$book_states, "book_details"=>$book_details, "book_ztflh"=>$book_ztflh);
     }
-    elseif($newbook == "yes") {
-        $url = "http://aleph.dlmu.edu.cn:8991/cgi-bin/newbook.cgi?base=ALL&cls=ALL&date=180";
-        $source = curl_get_contents($url);
-        $zhengze = '/t:".*?"/';
-        $arr = array('t:','"');
-        $json_arr = array();
-        if(preg_match_all($zhengze, $source , $matches)) {
-            foreach($matches as $match) {
-                $json_arr = $json_arr + array("title"=>str_replace($arr, '', $match));
-            }
-            echo json_encode($json_arr);
-        }        
-    }
-    elseif($douban != "") {
-        if(preg_match('/[0-9]{13}/',$douban) or preg_match('/[0-9]{10}/',$douban)) {
-            $url = 'https://api.douban.com/v2/book/isbn/' . $douban . '?fields=rating,image,price';
-            $source = curl_get_contents($url);
-            $json = json_decode($source);
-            $book_rating = $json->rating->average;
-            $book_image = $json->image;
-            $book_price = $json->price;
-            echo json_encode(array("book_rating"=>$book_rating, "book_image"=>$book_image, "book_price"=>$book_price));
-        }
-        else
-            echo "错误的isbn";
-    }
-    
-
+    echo json_encode($json_arr);
 ?>
