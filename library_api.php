@@ -120,12 +120,13 @@
     }
     elseif($douban != "") {
         if(preg_match('/[0-9]{13}/',$douban) or preg_match('/[0-9]{10}/',$douban)) {
-            $url = 'https://api.douban.com/v2/book/isbn/' . $douban . '?fields=rating,image';
+            $url = 'https://api.douban.com/v2/book/isbn/' . $douban . '?fields=rating,image,price';
             $source = curl_get_contents($url);
             $json = json_decode($source);
             $book_rating = $json->rating->average;
             $book_image = $json->image;
-            echo json_encode(array("book_rating"=>$book_rating, "book_image"=>$book_image));
+            $book_price = $json->price;
+            echo json_encode(array("book_rating"=>$book_rating, "book_image"=>$book_image, "book_price"=>$book_price));
         }
         else
             echo "错误的isbn";
