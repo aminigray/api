@@ -12,8 +12,10 @@ search:查找书籍，返回ISBN，作者，书名，所在地，在架状态，
 douban:接受参数为13或10位ISBN编号，返回书籍封面和平均评分
 
 e.g:
-http://127.0.0.1/library_api.php?newbook=yes&toplist=yes&search=qw
+http://127.0.0.1/library_api.php?newbook=yes
+
 http://127.0.0.1/library_api.php?toplist=yes
+
 http://127.0.0.1/library_api.php?search=qw
 
 ```
