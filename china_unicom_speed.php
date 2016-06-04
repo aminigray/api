@@ -4,6 +4,7 @@
         array_push($url,"http://120.52.72.$idx/www.hi-pda.com/forum/templates/colors/images/logo.gif");
     }
     $result = async_get_url($url);
+    sort($result);
     echo json_encode($result);
     function async_get_url($url_array, $wait_usec = 0)
     {
@@ -35,7 +36,7 @@
         /* 读取资料 */
         foreach($handle as $i => $ch) {
             $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            if($http_code == 200){
+            if(preg_match('/[2-3]0[0-8]/',$http_code)){
                 preg_match('/120\.52\.72\.[0-9]{1,3}/',curl_getinfo($ch, CURLINFO_EFFECTIVE_URL),$matches);
                 array_push($data,array("total_time"=>curl_getinfo($ch, CURLINFO_TOTAL_TIME), "download_speed"=>curl_getinfo($ch, CURLINFO_SPEED_DOWNLOAD), "host_name"=>$matches[0]));
                 unset($matches);
