@@ -114,6 +114,7 @@ class wechatCallbackapiTest
             $postObj = simplexml_load_string($postStr, 'SimpleXMLElement', LIBXML_NOCDATA);
             $fromUsername = $postObj->FromUserName;
             $toUsername = $postObj->ToUserName;
+            $event = $postObj->Event;            
             $keyword = $postObj->Content;
             $time = time();
             $textTpl = "<xml>
@@ -126,25 +127,25 @@ class wechatCallbackapiTest
                         </xml>";
             if($event == "subscribe") {
                 $msgType = "text";#回复数据类型为文本
-                $contentStr = "简单指令:read open east(e) west(w) up down inventory";//回复欢迎信息
+                $contentStr = "简单指令:read open east(e) west(w) up down inventory\n输入restar可以重置游戏";//回复欢迎信息
                 $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
                 echo $resultStr;                
-            }                        
-            if($keyword != '' || $keyword != "restart")
+            }         
+            if($keyword == "restart"){
+                preg_match($zhengze_restart, $content, $matches);
+                $content = curl_get_contents("http://www.web-adventures.org/cgi-bin/webfrotz?s=ZorkDungeon&x=Q" . $fromUsername  . '&' .$matches[0]);
+                $contentStr = "游戏已重新开始";
+                $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
+                echo $resultStr;                    
+                
+            }            
+            elseif($keyword != '' || $keyword != "restart")
             {
                 $msgType = "text";
                 $url ="http://www.web-adventures.org/cgi-bin/webfrotz?s=ZorkDungeon&x=Q" . $fromUsername . '&a=' . urlencode($keyword);
                 $content = curl_get_contents($url);
                 $zhengze_place = '/' . $keyword. ' ' .'[A-Z ]{3,20}/';
                 $zhengze_restart = '/n=([0-9]{1,9})/';
-                if($keyword == "restart"){
-                    preg_match($zhengze_restart, $content, $matches);
-                    $content = curl_get_contents("http://www.web-adventures.org/cgi-bin/webfrotz?s=ZorkDungeon&x=Q" . $fromUsername  . '&' .$matches[0]);
-                    $contentStr = "游戏已重新开始";
-                    $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
-                    echo $resultStr;                    
-                    
-                }
                 $content = cleanHtml($content);
                 preg_match($zhengze_place, $content, $matches);
                 $place = trim(str_replace($keyword,'',$matches[0]));
@@ -157,8 +158,6 @@ class wechatCallbackapiTest
                 $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
                 echo $resultStr;
             }
-        }elseif($keyword == "restart"){
-            $url ="http://www.web-adventures.org/cgi-bin/webfrotz?s=ZorkDungeon&x=Q" . $fromUsername . '&a=' . urlencode($keyword);
         }
     }
 }
