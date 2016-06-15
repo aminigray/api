@@ -3,7 +3,7 @@
     方倍工作室 http://www.cnblogs.com/txw1958/
     CopyRight 2013 www.fangbei.org  All Rights Reserved
 */
-
+error_reporting(0);
 define("TOKEN", "weixin");
 $wechatObj = new wechatCallbackapiTest();
 if (isset($_GET['echostr'])) {
@@ -134,18 +134,20 @@ class wechatCallbackapiTest
             {
                 $msgType = "text";
                 $url ="http://www.web-adventures.org/cgi-bin/webfrotz?s=ZorkDungeon&x=Q" . $fromUsername . '&a=' . urlencode($keyword);
-                echo $content = curl_get_contents($url);
-                $zhengze_place = '/status"> ([A-Za-z0-9]{0,99})/';
+                $content = curl_get_contents($url);
+                $zhengze_place = '/' . $keyword. ' ' .'[A-Z ]{3,20}/';
                 $zhengze_restart = '/n=([0-9]{1,9})/';
                 if($keyword == "restart"){
                     preg_match($zhengze_restart, $content, $matches);
                     $content = curl_get_contents("http://www.web-adventures.org/cgi-bin/webfrotz?s=ZorkDungeon&x=Q" . $fromUsername  . '&' .$matches[0]);
+                    $contentStr = "游戏已重新开始";
+                    $resultStr = sprintf($textTpl, $fromUsername, $toUsername, $time, $msgType, $contentStr);
+                    echo $resultStr;                    
                     
                 }
-                preg_match($zhengze_place, $content, $matches);
-                rsort($matches);
-                $place = trim(str_replace('status">', "" ,$matches[0]));
                 $content = cleanHtml($content);
+                preg_match($zhengze_place, $content, $matches);
+                $place = trim(str_replace($keyword,'',$matches[0]));
                 $zhengze_score = '/SCORE: [0-9]{1,3}     MOVES: [0-9]{1,3}/';
                 preg_match($zhengze_score,$content,$matches);
                 $status = $matches[0];
