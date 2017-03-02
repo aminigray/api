@@ -83,9 +83,9 @@
     $site = "";
     $keyword = "";
     if ($_SERVER["REQUEST_METHOD"] == "GET") {
-        $page = test_input($_GET["page"]);
-        $site = test_input($_GET["site"]);
-        $keyword = test_input($_GET["keyword"]);
+        $page = test_input($_GET["p"]);
+        $site = test_input($_GET["s"]);
+        $keyword = test_input($_GET["k"]);
     }
     $zhengze1  = '/(simple\/\?t[0-9]{6,}.html)">(.*?)<\/a/';//匹配商品名数码之家的
     $zhengze2 = '/(?:a href=")(.*?)(?:" name=)/';//匹配url
@@ -96,7 +96,7 @@
     $result = array();
     $url_arr = array();
     $counter = (int)$page;
-    if ($site == "mydigit") {
+    if ($site == "m") {
         while($counter){
             array_push($url_arr, 'http://bbs.mydigit.cn/simple/?f137_' . (string)$counter . '.html');
             $counter-=1;
@@ -113,7 +113,7 @@
 
         echo json_encode($result);
     }
-    elseif($site == "tulading"){
+    elseif($site == "t"){
         while($counter){
             array_push($url_arr, 'http://tieba.baidu.com/f?kw=%E5%9B%BE%E6%8B%89%E4%B8%81&ie=utf-8&pn=' . (string)(($counter-1)*50));
             $counter-=1;
