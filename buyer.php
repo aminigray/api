@@ -87,7 +87,7 @@
         $site = test_input($_GET["site"]);
         $keyword = test_input($_GET["keyword"]);
     }
-    $zhengze1  = '/(?:t f14">)(.*?)(?:<)/';//匹配商品名数码之家的
+    $zhengze1  = '/(simple\/\?t[0-9]{6,}.html)">(.*?)<\/a/';//匹配商品名数码之家的
     $zhengze2 = '/(?:a href=")(.*?)(?:" name=)/';//匹配url
     $zhengze3 = '/(?=id=[0-9]{3,}&page=2&property=0&ClassID=3>)(.*?)</';
     $zhengze4 = '/forum_read\.asp\?id=[0-9]{3,}&page=2&property=0&ClassID=3/';
@@ -98,14 +98,14 @@
     $counter = (int)$page;
     if ($site == "mydigit") {
         while($counter){
-            array_push($url_arr, 'http://bbs.mydigit.cn/thread.php?fid=137&search=all&page=' . (string)$counter);
+            array_push($url_arr, 'http://bbs.mydigit.cn/simple/?f137_' . (string)$counter . '.html');
             $counter-=1;
         }
         $source = async_get_url($url_arr);
-        if(preg_match_all($zhengze1, $source, $matches1) and preg_match_all($zhengze2, $source, $matches2)) {
-            for ($i=0;$i<sizeof($matches2[1]);$i++) {
-                if(checkstr(iconv('gbk','utf-8',$matches1[1][$i]), $keyword)){
-                    array_push($result, array("title"=>iconv('gbk','utf-8',$matches1[1][$i]),"url"=>'http://bbs.mydigit.cn/' . $matches2[1][$i]));
+        if(preg_match_all($zhengze1, $source, $matches1)) {
+            for ($i=0;$i<sizeof($matches1[2]);$i++) {
+                if(checkstr(iconv('gbk','utf-8',$matches1[2][$i]), $keyword)){
+                    array_push($result, array("title"=>iconv('gbk','utf-8',$matches1[2][$i]),"url"=>'http://bbs.mydigit.cn/' . $matches1[1][$i]));
                 }
             }
             //echo json_encode($result);
