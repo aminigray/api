@@ -67,7 +67,6 @@
         $num = test_input($_GET["num"]);
         $newbook = test_input($_GET["newbook"]);
         $douban = test_input($_GET["douban"]);
-        ec
     }
     if ($toplist != "") {
         $source = curl_get_contents("http://aleph.dlmu.edu.cn:8991/opac_lcl_chi/loan_top_ten/loan.ALL.ALL.y");

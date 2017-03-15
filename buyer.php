@@ -8,6 +8,33 @@
       ini_set('zlib.output_compression_level', '4');
     }
     header("content-Type: text/html; charset=gbk");
+    function getProxy() {
+            $tmp = file_get_contents("http://127.0.0.1:8000");
+            $arr = array('"','[',']');
+            $tmp = str_replace($arr, "", $tmp);
+            return explode(":", $tmp);
+    }
+//    function getProxy() {
+//            $tmp = file_get_contents("http://127.0.0.1:8000");
+//            $zhengze = '/".*."/';
+//            preg_match($zhengze, $tmp, $matches);
+//            $aContent = array(
+//                    'http' => array(
+//                            'proxy' => 'tcp://' . $matches[0],
+//                            'request_fulluri' => true,
+//                    ),
+//            );
+//            $cxContext = stream_context_create($aContext);
+//            $sFile = file_get_contents("http://hi-pda.com", False, $cxContext);
+//            if ($sFile) {
+//                    $zhengze = '/([0-9].*).:.([0-9]{3,})/';
+//                    preg_match($zhengze, $tmp, $matches);
+//                    return $matches;
+//            }
+//            else {
+//                    getProxy();
+//            }
+//    }
     function async_get_url($url_array, $wait_usec = 0)
     {
         if (!is_array($url_array))
@@ -23,8 +50,14 @@
 
         $i = 0;
         foreach($url_array as $url) {
+            $proxy = getProxy();
             $ch = curl_init();
-
+            curl_setopt($ch, CURLOPT_PROXY, $proxy[0]);
+            curl_setopt($ch, CURLOPT_PROXYPORT, $proxy[1]);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+            curl_setopt ( $ch, CURLOPT_NOSIGNAL,true);
+            //curl_setopt($ch, CURLOPT_CONNECTTIMEOUT_MS, 100);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
             curl_setopt($ch, CURLOPT_URL, $url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1); // return don't print
             curl_setopt($ch, CURLOPT_TIMEOUT, 30);
@@ -79,13 +112,15 @@
             return true;
         }
     }
-    $page = "";
-    $site = "";
-    $keyword = "";
+    $page = "20";
+    $site = "r";
+    $keyword = "315161";
+    $filter = "";
     if ($_SERVER["REQUEST_METHOD"] == "GET") {
         $page = test_input($_GET["p"]);
         $site = test_input($_GET["s"]);
         $keyword = test_input($_GET["k"]);
+        $filter = test_input($_GET["f"]);
     }
     $zhengze1  = '/(simple\/\?t[0-9]{6,}.html)">(.*?)<\/a/';//匹配商品名数码之家的
     $zhengze2 = '/(?:a href=")(.*?)(?:" name=)/';//匹配url
@@ -99,6 +134,7 @@
     if ($site == "m") {
         while($counter){
             array_push($url_arr, 'http://bbs.mydigit.cn/simple/?f137_' . (string)$counter . '.html');
+            array_push($url_arr, 'http://bbs.mydigit.cn/simple/?f73_' . (string)$counter . '.html');
             $counter-=1;
         }
         $source = async_get_url($url_arr);
@@ -110,7 +146,6 @@
             }
             //echo json_encode($result);
         }
-
         echo json_encode($result);
     }
     elseif($site == "t"){
@@ -127,5 +162,12 @@
             }
         }
         echo json_encode($result);
+    }
+    elseif($site == "r"){
+            while($counter){
+                array_push($url_arr, 'http://www.rkpass.cn/addtrace.jsp?url_save=http://www.rkpass.cn/u.jsp___u=' . $keyword);
+                $counter-=1;
+            }
+            echo async_get_url($url_arr);
     }
 ?>
